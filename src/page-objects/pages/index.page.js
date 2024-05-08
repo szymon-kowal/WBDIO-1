@@ -1,5 +1,5 @@
 import DefaultPage from '../default.page.js';
-import { browser, $ } from '@wdio/globals';
+import { $ } from '@wdio/globals';
 
 export default class IndexPage extends DefaultPage {
     async open() {
@@ -28,11 +28,30 @@ export default class IndexPage extends DefaultPage {
     get submitBtn() {
         return $('.btn.-big');
     }
-    async removePopups(pauseTime) {
-        // Close modal pop-up about cookies
-        (await $('.css-47sehv')).click();
-        // Close advertising banner displayed on bottom of page
-        await browser.pause(pauseTime);
-        (await $('#hideSlideBanner')).click();
+    async removePopups() {
+        await this.closePopupIfDisplayed('.css-47sehv', 'Cookie popup');
+        await this.closePopupIfDisplayed(
+            '#hideSlideBanner',
+            'Advertising banner'
+        );
+    }
+
+    async closePopupIfDisplayed(selector, description = '') {
+        try {
+            const element = await $(selector);
+            if (
+                await element.waitForDisplayed({
+                    timeout: 3000,
+                    reverse: false,
+                })
+            ) {
+                await element.click();
+            }
+        } catch (error) {
+            console.log(
+                `${description} is not displayed or not clickable:`,
+                error.message
+            );
+        }
     }
 }
